@@ -20,20 +20,23 @@ var grid = creategrid();
 /* creating game board */
 var canvas =document.getElementById('tetrisgame');
 var context = canvas.getContext("2d");
-var bblock = new Image();
-bblock.src = 'bblock.gif';
 
-var colblock = new Image();
-colblock.src = 'darkblue.gif';
+
  
 
 function gameboard() {
 for (i= 0;  i< gridheight; i++) {
 	for (j=0; j< gridwidth; j++) {
 		if (grid[i][j] == 0 ){ 
-			context.drawImage(bblock, j*20, i*20);
+			context.beginPath();
+			context.fillStyle = "white";
+			context.rect(j*20, i*20, 20, 20);  
+			context.fill();
 		} else {
-			context.drawImage(colblock, j*20, i*20);
+			context.beginPath();
+			context.fillStyle = "blue";
+			context.rect(j*20, i*20, 20, 20);  
+			context.fill();
 		}
 	}
 			
