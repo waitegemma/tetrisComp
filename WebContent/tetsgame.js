@@ -1,18 +1,24 @@
+/**
+ * 
+ */
 var gridheight = 10;
 var gridwidth = 6;
+
 
 /* create grid of 0's */			
 function creategrid() {
 	var grid =[];
-	for (i = 0;  i< gridheight; i++) {
+	for (var i = 0;  i< gridheight; i++) {
 		grid.push([]);
-		for (j=0; j< gridwidth; j++) {
+		for (var j=0; j< gridwidth; j++) {
 			grid[i].push(0);
 		}
 	}
 	return grid
 }
+
 var grid = creategrid();
+console.log(grid);
 
 
 
@@ -22,8 +28,8 @@ var canvas = document.getElementById('tetrisgame');
 var context = canvas.getContext("2d");
  
 function gameboard() {
-for (i= 0;  i< gridheight; i++) {
-	for (j=0; j< gridwidth; j++) {
+for (var i= 0;  i< gridheight; i++) {
+	for (var j=0; j< gridwidth; j++) {
 		if (grid[i][j] == 0 ){ 
 			context.beginPath();
 			context.fillStyle = "white";
@@ -41,44 +47,63 @@ for (i= 0;  i< gridheight; i++) {
 }
 gameboard();
 
-/* block coordinates equal creategrid coordations make 0 be 1 */
-var testblock =[[0,0],[1,0]];
-var block1 = [[0,0],[0,1],[0,2],[0,3]]; 
-var block2 =[[0,0],[1,0],[1,1],[1,2]];
-var block3 = [[1,0],[1,1],[1,2],[0,2]];
-var block4 = [[1,0],[0,1],[1,1],[0,2]];
-var block5 = [[0,1],[1,0],[1,1],[1,2]];
-var block6 = [[0,0],[1,0],[1,1],[1,2]];
-var block7 =[[0,0],[0,1],[1,0],[1,1]]; 
+/* block coordinates equal create grid coordinations make 0 be 1 */
+var testblock = { 
+		coord: [[0,0],[1,0],[1,1]],
+		z: 1
+};
+var block1 = {
+		coord: [[0,0],[0,1],[0,2],[0,3]],
+		z: 2
+};
+var block2 = {
+		coord: [[0,0],[1,0],[1,1],[1,2]],
+		z: 3
+};
+var block3 = {
+		coord: [[1,0],[1,1],[1,2],[0,2]],
+		z: 4
+};
+var block4 = {
+		coord: [[1,0],[0,1],[1,1],[0,2]],
+		z: 5
+};
+var block5 = {
+		coord: [[0,1],[1,0],[1,1],[1,2]],
+		z: 6
+};
+var block6 = {
+		coord: [[0,0],[1,0],[1,1],[1,2]],
+		z: 7
+};
+var block7 = {
+		coord: [[0,0],[0,1],[1,0],[1,1]],
+		z: 8
+};
 
 
 var num = Math.floor(Math.random()*8);
-var block = createblock (num);
+var block = new Object();
 	
 function createblock (num) {
-	if  (num <= 8) { var block = testblock; 
-		} else if (num == 1) { var block = block1;
-		} else if (num == 2) { var block = block2;
-		} else if (num == 3) { var block = block3;
-		} else if (num == 4) { var block = block4;
-		} else if (num == 5) { var block = block5;
-		} else if (num == 6) { var block = block6;
-		} else if (num == 7) { var block = block7;
-	} return block;
+	if  (num <= 8) { block.coord = testblock.coord; block.z = testblock.z; 
+		} else if (num == 1) { block.coord = block1.coord; block.z = block1.z;
+		} else if (num == 2) { block.coord = block2.coord; block.z = block2.z;
+		} else if (num == 3) { block.coord = block3.coord; block.z = block3.z;
+		} else if (num == 4) { block.coord = block4.coord; block.z = block4.z;
+		} else if (num == 5) { block.coord = block5.coord; block.z = block5.z;
+		} else if (num == 6) { block.coord = block6.coord; block.z = block6.z;
+		} else if (num == 7) { block.coord = block7.coord; block.z = block7.z;
+	} return block.coord, block.z; 
 };
 
-var z = createz (num);
- function createz (num) {
-	 if  (num <= 8) { var z = 1; 
-		} else if (num == 1) { var z = 2;
-		} else if (num == 2) { var z = 3;
-		} else if (num == 3) { var z = 4;
-		} else if (num == 4) { var z = 5;
-		} else if (num == 5) { var z = 6;
-		} else if (num == 6) { var z = 7;
-		} else if (num == 7) { var z = 8;
-	} return z;
- };
+createblock (num);
+console.log(block.coord);
+console.log(block.z);
+console.log(block);
+blockLength = Object.keys(block.coord).length
+console.log(blockLength);
+
 
 
 
@@ -86,10 +111,10 @@ var z = createz (num);
 /* time step */
 
 	
-var time =setInterval(function (){ blockmove(block)}, 5000);
+var time =setInterval(function (){ blockmove(block)}, 2000);
 function blockmove () {
-	for (i=0; i<block.length; i++) {
-	block[i][1] += 1	
+	for (var i=0; i<blockLength; i++) {
+	block.coord[i][1] += 1	
 	}
 	gameboard();
 return block 
@@ -97,18 +122,17 @@ return block
 
 
 function addblock(block,z) {
-	for (i=0; i<block.length; i++){
-	 x=block[i][0];
-	 y=block[i][1];
+	grid=creategrid();
+	for (var i=0; i<blockLength; i++){
+	 x=block.coord[i][0];
+	 y=block.coord[i][1];
 	 	if (y!=gridheight){
 	 		grid[y][x] = z ;
 	 	} else {
-	 		alert ("collision!")
+	 		console.log("collision!")
 	 		/* var num = Math.floor(Math.random()*8);
 	 		var block = new array(createblock (num));
-	 		var z = createz (num);
 	 		return num, block, z; */
-	 		return block;
 	 		
 	 	}
 	}
@@ -118,12 +142,12 @@ function addblock(block,z) {
 
 /* keyboard functions */
 function moveleft(block) {
-	for (i=0; i<block.length; i++) {
-		x = block[i][0]
+	for (var i=0; i<blockLength; i++) {
+		x = block.coord[i][0]
 		if (x != 0) {
-			block[i][0] -= 1;
+			block.coord[i][0] -= 1;
 		}else{
-		alert("collosion!")
+		console.log("collosion!")
 		}
 	}
 	gameboard();
@@ -132,12 +156,12 @@ return block
 } 
 
 function moveright(block) {
-	for (i=0; i<block.length; i++) {
-		x = block[i][0]
+	for (var i=0; i<blockLength; i++) {
+		x = block.coord[i][0]
 		if (x != gridwidth) {
-	block[i][0] += 1;
+	block.coord[i][0] += 1;
 		} else {
-			alert("collosion!")
+			console.log("collosion!")
 		}
 	}
 	gameboard();
@@ -167,7 +191,6 @@ function key(e) {
 
 requestAnimationFrame(gameloop);
 function gameloop () {
-	grid=creategrid();
-	addblock(block,z);
+	addblock(block);
 	requestAnimationFrame(gameloop); 
 	}
