@@ -1,8 +1,8 @@
 /**
  * 
  */
-var gridheight = 10;
-var gridwidth = 6;
+var gridheight = 22; // normal grid size plus 2 hidden rows at the top.
+var gridwidth = 10;
 
 
 /* create grid of 0's */			
@@ -26,19 +26,19 @@ console.log(grid);
 /* creating game board */
 var canvas = document.getElementById('tetrisgame');
 var context = canvas.getContext("2d");
- 
+
 function gameboard() {
-for (var i= 0;  i< gridheight; i++) {
+for (var i= 2;  i< gridheight; i++) {
 	for (var j=0; j< gridwidth; j++) {
 		if (grid[i][j] == 0 ){ 
 			context.beginPath();
-			context.fillStyle = "white";
-			context.rect(j*20, i*20, 20, 20);  
+			context.fillStyle = "red"; // changed the cells to be red so that I can see the canvas.
+			context.rect(j*20, (i-2)*20, 20, 20);  // (i-2) as top 2 rows are hidden.
 			context.fill();
 		} else {
 			context.beginPath();
 			context.fillStyle = "blue";
-			context.rect(j*20, i*20, 20, 20);  
+			context.rect(j*20, (i-2)*20, 20, 20);  
 			context.fill();
 		}
 	}
