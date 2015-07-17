@@ -18,29 +18,20 @@ function creategrid() {
 }
 
 var grid = creategrid();
-console.log(grid);
-
-
-
 
 /* creating game board */
 var canvas = document.getElementById('tetrisgame');
 var context = canvas.getContext("2d");
 
-function gameboard() {
-for (var i= 2;  i< gridheight; i++) {
-	for (var j=0; j< gridwidth; j++) {
-		if (grid[i][j] == 0 ){ 
+function gameboard() {		// can't seem to figure out how to save game board once reaching the bottom.
+for (var row=0;  row< gridheight-2; row++) {
+	for (var col=0; col< gridwidth; col++) {
+		if (grid[row+2][col] == 0 ){
 			context.beginPath();
-			context.fillStyle = "red"; // changed the cells to be red so that I can see the canvas.
-			context.rect(j*20, (i-2)*20, 20, 20);  // (i-2) as top 2 rows are hidden.
+			context.fillStyle = "red"; 
+			context.rect(col*20, row*20, 20, 20);  
 			context.fill();
-		} else {
-			context.beginPath();
-			context.fillStyle = "blue";
-			context.rect(j*20, (i-2)*20, 20, 20);  
-			context.fill();
-		}
+		} 
 	}
 			
 	}
@@ -48,93 +39,81 @@ for (var i= 2;  i< gridheight; i++) {
 gameboard();
 
 /* block coordinates equal create grid coordinations make 0 be 1 */
-var testblock = { 
-		coord: [[0,0],[1,0],[1,1]],
-		z: 1
-};
-var block1 = {
-		coord: [[0,0],[0,1],[0,2],[0,3]],
-		z: 2
-};
-var block2 = {
-		coord: [[0,0],[1,0],[1,1],[1,2]],
-		z: 3
-};
-var block3 = {
-		coord: [[1,0],[1,1],[1,2],[0,2]],
-		z: 4
-};
-var block4 = {
-		coord: [[1,0],[0,1],[1,1],[0,2]],
-		z: 5
-};
-var block5 = {
-		coord: [[0,1],[1,0],[1,1],[1,2]],
-		z: 6
-};
-var block6 = {
-		coord: [[0,0],[1,0],[1,1],[1,2]],
-		z: 7
-};
-var block7 = {
-		coord: [[0,0],[0,1],[1,0],[1,1]],
-		z: 8
-};
-
-
-var num = Math.floor(Math.random()*8);
-var block = new Object();
+var Block = function(coordinates, colour) {
+	this.coordinates = coordinates;
+	this.colour = colour;
+	this.active = true; 			// for creating new block.
+	this.height = function(){
+		var maxY;
+		var minY;
+		this.coordinates.forEach(function(coordinate) {
+			if(maxY == undefined || coordinate[1]>maxY) {
+				maxY = coordinate[1];
+			}
+			if(minY == undefined || coordinate[1] <minY) {
+				minY = coordinate[1];
+			}
+		});
+		return 1 + maxY - minY;
+	};
 	
-function createblock (num) {
-	if  (num <= 8) { block.coord = testblock.coord; block.z = testblock.z; 
-		} else if (num == 1) { block.coord = block1.coord; block.z = block1.z;
-		} else if (num == 2) { block.coord = block2.coord; block.z = block2.z;
-		} else if (num == 3) { block.coord = block3.coord; block.z = block3.z;
-		} else if (num == 4) { block.coord = block4.coord; block.z = block4.z;
-		} else if (num == 5) { block.coord = block5.coord; block.z = block5.z;
-		} else if (num == 6) { block.coord = block6.coord; block.z = block6.z;
-		} else if (num == 7) { block.coord = block7.coord; block.z = block7.z;
-	} return block.coord, block.z; 
+}
+
+var block = new Block([[0,0],[0,1],[1,0],[1,1]], "yellow");
+console.log("Block", block);
+console.log("height", block.height())
+
+
+function createBlock(){
+	var num = Math.floor(Math.random()*8);
+	var block;
+	if  (num == 0) { block = new Block([[4,0],[5,0],[5,1]],"pink")
+		} else if (num == 1) { block = new Block([[5,0],[5,1],[5,2],[5,3]],"cyan")
+		} else if (num == 2) { block = new Block([[4,0],[5,0],[5,1],[5,2]],"blue")
+		} else if (num == 3) { block = new Block([[5,0],[5,1],[5,2],[4,2]],"orange")
+		} else if (num == 4) { block = new Block([[5,0],[4,1],[5,1],[4,2]],"red")
+		} else if (num == 5) { block = new Block([[4,1],[5,0],[5,1],[5,2]],"purple")
+		} else if (num == 6) { block = new Block([[4,0],[5,0],[5,1],[6,1]],"green")
+		} else if (num == 7) { block = new Block([[4,0],[4,1],[5,0],[5,1]],"yellow")
+	} return block; 
 };
-
-createblock (num);
-console.log(block.coord);
-console.log(block.z);
-console.log(block);
-blockLength = Object.keys(block.coord).length
-console.log(blockLength);
-
-
-
-
+/* for (var i=0; i<10; i++) {
+	console.log("Random block", createBlock().colour, createBlock().coordinates);
+	
+} */
+// var block = createBlock();
 
 /* time step */
-
 	
 var time =setInterval(function (){ blockmove(block)}, 2000);
 function blockmove () {
-	for (var i=0; i<blockLength; i++) {
-	block.coord[i][1] += 1	
+	collision = false;
+	for (var i=0; i<block.coordinates.length; i++) {
+		y=block.coordinates[i][1];
+		if (y+1>=gridheight){
+	 		console.log("collision!")		// collision detection sorted, for all directions. wont move block down at this point.
+	 		collision = true;
+	 		break;
+		}
+	} if (collision == false){
+		for (var i=0; i<block.coordinates.length; i++) {
+			block.coordinates[i][1] += 1	
+	}} else if (collision == true) {
+		block.active = false;
 	}
 	gameboard();
 return block 
 }
 
 
-function addblock(block,z) {
-	grid=creategrid();
-	for (var i=0; i<blockLength; i++){
-	 x=block.coord[i][0];
-	 y=block.coord[i][1];
-	 	if (y!=gridheight){
-	 		grid[y][x] = z ;
-	 	} else {
-	 		console.log("collision!")
-	 		/* var num = Math.floor(Math.random()*8);
-	 		var block = new array(createblock (num));
-	 		return num, block, z; */
-	 		
-	 	}
+function addblock(block) {
+	for (var i=0; i<block.coordinates.length; i++){
+	 x=block.coordinates[i][0];
+	 y=block.coordinates[i][1];
+	 context.beginPath();					// draws block onto grid
+	 context.fillStyle = block.colour; 
+	 context.rect(x*20, (y-2)*20, 20, 20);  
+	 context.fill();
 	}
 }
 
@@ -142,12 +121,16 @@ function addblock(block,z) {
 
 /* keyboard functions */
 function moveleft(block) {
-	for (var i=0; i<blockLength; i++) {
-		x = block.coord[i][0]
-		if (x != 0) {
-			block.coord[i][0] -= 1;
-		}else{
-		console.log("collosion!")
+	collision = false;
+	for (var i=0; i<block.coordinates.length; i++) {
+		x = block.coordinates[i][0]
+		if (x<=0){
+			console.log("collision")
+			collision = true;
+		}
+	} if (collision == false){
+		for (var i=0; i<block.coordinates.length; i++) {
+			block.coordinates[i][0] -= 1;
 		}
 	}
 	gameboard();
@@ -156,13 +139,17 @@ return block
 } 
 
 function moveright(block) {
-	for (var i=0; i<blockLength; i++) {
-		x = block.coord[i][0]
-		if (x != gridwidth) {
-	block.coord[i][0] += 1;
-		} else {
-			console.log("collosion!")
+	collision = false;
+	for (var i=0; i<block.coordinates.length; i++) {
+		x = block.coordinates[i][0]
+		if (x+1 >= gridwidth) {
+			console.log("collision")
+			collision = true;
 		}
+	} if (collision == false){
+		for (var i=0; i<block.coordinates.length; i++) {
+			block.coordinates[i][0] += 1;
+			}
 	}
 	gameboard();
 return block 
@@ -191,6 +178,9 @@ function key(e) {
 
 requestAnimationFrame(gameloop);
 function gameloop () {
+	/* if (block.active == false){  // for creating new block
+		block = new Block;
+	} */
 	addblock(block);
 	requestAnimationFrame(gameloop); 
 	}
