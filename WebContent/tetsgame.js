@@ -25,10 +25,10 @@ var context = canvas.getContext("2d");
 
 function gameboard() {		// can't seem to figure out how to save game board once reaching the bottom.
 for (var row=0;  row< gridheight-2; row++) {
-	for (var col=0; col< gridwidth; col++) {
+	for (var col=0; col< gridwidth; col++) { // copy gameboard() at point of collision.
 		if (grid[row+2][col] == 0 ){
 			context.beginPath();
-			context.fillStyle = "red"; 
+			context.fillStyle = "grey"; 
 			context.rect(col*20, row*20, 20, 20);  
 			context.fill();
 		} 
@@ -37,8 +37,7 @@ for (var row=0;  row< gridheight-2; row++) {
 	}
 }
 gameboard();
-
-/* block coordinates equal create grid coordinations make 0 be 1 */
+var collision = false;
 var Block = function(coordinates, colour) {
 	this.coordinates = coordinates;
 	this.colour = colour;
@@ -77,20 +76,26 @@ function createBlock(){
 		} else if (num == 7) { block = new Block([[4,0],[4,1],[5,0],[5,1]],"yellow")
 	} return block; 
 };
-/* for (var i=0; i<10; i++) {
+for (var i=0; i<10; i++) {
 	console.log("Random block", createBlock().colour, createBlock().coordinates);
 	
-} */
+} 
 // var block = createBlock();
-
+var blocks = [];
 /* time step */
 	
 var time =setInterval(function (){ blockmove(block)}, 2000);
 function blockmove () {
 	collision = false;
 	for (var i=0; i<block.coordinates.length; i++) {
-		y=block.coordinates[i][1];
-		if (y+1>=gridheight){
+		y=block.coordinates[i][1]+1;
+		x=block.coordinates[i][0];
+		willFit();
+		if (movable == false){
+			console.log("collision")
+			collision = true;
+			break;
+		} else if (y>=gridheight){
 	 		console.log("collision!")		// collision detection sorted, for all directions. wont move block down at this point.
 	 		collision = true;
 	 		break;
@@ -113,7 +118,16 @@ function addblock(block) {
 	 context.beginPath();					// draws block onto grid
 	 context.fillStyle = block.colour; 
 	 context.rect(x*20, (y-2)*20, 20, 20);  
-	 context.fill();
+	 context.fill(); 
+	} for (var j=0; j<blocks.length; j++){
+		for (var k=0; k<blocks[j].coordinates.length; k++){
+			x=blocks[j].coordinates[k][0];
+			y=blocks[j].coordinates[k][1];
+			context.beginPath();					// draws block onto grid
+			context.fillStyle = blocks[j].colour; 
+			context.rect(x*20, (y-2)*20, 20, 20);  
+			context.fill(); 
+		}
 	}
 }
 
@@ -123,8 +137,14 @@ function addblock(block) {
 function moveleft(block) {
 	collision = false;
 	for (var i=0; i<block.coordinates.length; i++) {
-		x = block.coordinates[i][0]
-		if (x<=0){
+		x = block.coordinates[i][0]-1;
+		y=block.coordinates[i][1];
+		willFit();
+		if (movable == false){
+			console.log("collision 1")
+			collision = true;
+			break;} 
+		if (x<=-1){
 			console.log("collision")
 			collision = true;
 		}
@@ -141,8 +161,14 @@ return block
 function moveright(block) {
 	collision = false;
 	for (var i=0; i<block.coordinates.length; i++) {
-		x = block.coordinates[i][0]
-		if (x+1 >= gridwidth) {
+		x = block.coordinates[i][0]+1;
+		y=block.coordinates[i][1];
+		willFit();
+		if (movable == false){
+			console.log("collision")
+			collision = true;
+			break;}
+		if (x >= gridwidth) {
 			console.log("collision")
 			collision = true;
 		}
@@ -178,9 +204,26 @@ function key(e) {
 
 requestAnimationFrame(gameloop);
 function gameloop () {
-	/* if (block.active == false){  // for creating new block
-		block = new Block;
-	} */
+	if (block.active == false){ // for creating new block
+		blocks.push(block);
+		block = createBlock();
+	} 
 	addblock(block);
 	requestAnimationFrame(gameloop); 
+}
+
+function willFit(){
+	movable = true;
+	for (var j=0; j<blocks.length; j++){
+		for (var k=0; k<blocks[j].coordinates.length; k++){
+			x1=blocks[j].coordinates[k][0];
+			y1=blocks[j].coordinates[k][1];
+			if (x==x1 && y==y1){
+				movable = false;
+				return movable;
+				break;
+			}
+		}
 	}
+}
+
