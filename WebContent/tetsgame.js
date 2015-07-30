@@ -32,11 +32,12 @@ for (var row=0;  row< gridheight-2; row++) {
 			context.rect(col*20, row*20, 20, 20);  
 			context.fill();
 		} 
-	}
-			
-	}
+	}			
 }
+}
+
 gameboard();
+
 var collision = false;
 var Block = function(coordinates, colour) {
 	this.coordinates = coordinates;
@@ -58,128 +59,131 @@ var Block = function(coordinates, colour) {
 	
 }
 
-var block = new Block([[0,0],[0,1],[1,0],[1,1]], "yellow");
-console.log("Block", block);
-console.log("height", block.height())
+var activeBlock = new Block([[0,0],[0,1],[1,0],[1,1]], "yellow");
+// console.log("Block", activeBlock);
+// console.log("height", activeBlock.height())
 
 
 function createBlock(){
 	var num = Math.floor(Math.random()*8);
 	var block;
-	if  (num == 0) { block = new Block([[4,0],[5,0],[5,1]],"pink")
-		} else if (num == 1) { block = new Block([[5,0],[5,1],[5,2],[5,3]],"cyan")
-		} else if (num == 2) { block = new Block([[4,0],[5,0],[5,1],[5,2]],"blue")
-		} else if (num == 3) { block = new Block([[5,0],[5,1],[5,2],[4,2]],"orange")
-		} else if (num == 4) { block = new Block([[5,0],[4,1],[5,1],[4,2]],"red")
-		} else if (num == 5) { block = new Block([[4,1],[5,0],[5,1],[5,2]],"purple")
-		} else if (num == 6) { block = new Block([[4,0],[5,0],[5,1],[6,1]],"green")
-		} else if (num == 7) { block = new Block([[4,0],[4,1],[5,0],[5,1]],"yellow")
-	} return block; 
+	if  (num == 0) { activeBlock = new Block([[4,0],[5,0],[5,1]],"pink")
+		} else if (num == 1) { activeBlock = new Block([[5,0],[5,1],[5,2],[5,3]],"cyan")
+		} else if (num == 2) { activeBlock = new Block([[4,0],[5,0],[5,1],[5,2]],"blue")
+		} else if (num == 3) { activeBlock = new Block([[5,0],[5,1],[5,2],[4,2]],"orange")
+		} else if (num == 4) { activeBlock = new Block([[5,0],[4,1],[5,1],[4,2]],"red")
+		} else if (num == 5) { activeBlock = new Block([[4,1],[5,0],[5,1],[5,2]],"purple")
+		} else if (num == 6) { activeBlock = new Block([[4,0],[5,0],[5,1],[6,1]],"green")
+		} else if (num == 7) { activeBlock = new Block([[4,0],[4,1],[5,0],[5,1]],"yellow")
+	} return activeBlock; 
 };
-for (var i=0; i<10; i++) {
-	console.log("Random block", createBlock().colour, createBlock().coordinates);
-	
-} 
-// var block = createBlock();
-var blocks = [];
+//for (var i=0; i<10; i++) {
+	//console.log("Random block", createBlock().colour, createBlock().coordinates);
+//} 
+//var blocks = [];
+var blocks = {coordinates:[], colour:[]};
+
 /* time step */
 	
-var time =setInterval(function (){ blockmove(block)}, 2000);
+var time =setInterval(function (){ blockmove(activeBlock)}, 2000);
 function blockmove () {
-	collision = false;
-	for (var i=0; i<block.coordinates.length; i++) {
-		y=block.coordinates[i][1]+1;
-		x=block.coordinates[i][0];
-		willFit();
-		if (movable == false){
-			console.log("collision")
-			collision = true;
+	state = "movable";
+	shiftedCoordinates = activeBlock.coordinates.map(function(coordinate){
+		return [
+		    coordinate[0],
+		    coordinate[1]+1
+		];
+	});
+	for(var i=0; i<shiftedCoordinates.length; i++){
+		if (shiftedCoordinates[i][1]>=gridheight){
+			state = "collision";
+			activeBlock.active = false;
 			break;
-		} else if (y>=gridheight){
-	 		console.log("collision!")		// collision detection sorted, for all directions. wont move block down at this point.
-	 		collision = true;
-	 		break;
 		}
-	} if (collision == false){
-		for (var i=0; i<block.coordinates.length; i++) {
-			block.coordinates[i][1] += 1	
-	}} else if (collision == true) {
-		block.active = false;
+	}
+	if (state == "movable"){
+		if (willFit(shiftedCoordinates)){
+			for (var i=0; i<activeBlock.coordinates.length; i++) {
+				activeBlock.coordinates[i][1] += 1;
+			}
+		} else {activeBlock.active = false;}
 	}
 	gameboard();
-return block 
+return activeBlock 
 }
 
 
-function addblock(block) {
-	for (var i=0; i<block.coordinates.length; i++){
-	 x=block.coordinates[i][0];
-	 y=block.coordinates[i][1];
-	 context.beginPath();					// draws block onto grid
-	 context.fillStyle = block.colour; 
-	 context.rect(x*20, (y-2)*20, 20, 20);  
-	 context.fill(); 
-	} for (var j=0; j<blocks.length; j++){
-		for (var k=0; k<blocks[j].coordinates.length; k++){
-			x=blocks[j].coordinates[k][0];
-			y=blocks[j].coordinates[k][1];
+function addblock(activeBlock) {
+	for (var i=0; i<activeBlock.coordinates.length; i++){
+		x=activeBlock.coordinates[i][0];
+		y=activeBlock.coordinates[i][1];
+		context.beginPath();					// draws block onto grid
+		context.fillStyle = activeBlock.colour; 
+		context.rect(x*20, (y-2)*20, 20, 20);  
+		context.fill(); 
+	}for (var k=0; k<blocks.coordinates.length; k++){
+			x=blocks.coordinates[k][0];
+			y=blocks.coordinates[k][1];
 			context.beginPath();					// draws block onto grid
-			context.fillStyle = blocks[j].colour; 
+			context.fillStyle = blocks.colour[k]; 
 			context.rect(x*20, (y-2)*20, 20, 20);  
 			context.fill(); 
 		}
-	}
 }
+
 
 
 
 /* keyboard functions */
-function moveleft(block) {
-	collision = false;
-	for (var i=0; i<block.coordinates.length; i++) {
-		x = block.coordinates[i][0]-1;
-		y=block.coordinates[i][1];
-		willFit();
-		if (movable == false){
-			console.log("collision 1")
-			collision = true;
-			break;} 
-		if (x<=-1){
-			console.log("collision")
-			collision = true;
+function moveleft(activeBlock) {
+	state = "movable";
+	shiftedCoordinates = activeBlock.coordinates.map(function(coordinate){
+		return [
+		    coordinate[0]-1,
+		    coordinate[1]
+		];
+	});
+	for(var i=0; i<shiftedCoordinates.length; i++){
+		if (shiftedCoordinates[i][0]<=-1){
+			state = "collision";
+			break;
 		}
-	} if (collision == false){
-		for (var i=0; i<block.coordinates.length; i++) {
-			block.coordinates[i][0] -= 1;
+	}
+	if (state == "movable"){
+		if (willFit(shiftedCoordinates)){
+			for (var i=0; i<activeBlock.coordinates.length; i++) {
+				activeBlock.coordinates[i][0] -= 1;
+			}
+
 		}
 	}
 	gameboard();
-return block 
-	
+	return activeBlock	
 } 
 
-function moveright(block) {
-	collision = false;
-	for (var i=0; i<block.coordinates.length; i++) {
-		x = block.coordinates[i][0]+1;
-		y=block.coordinates[i][1];
-		willFit();
-		if (movable == false){
-			console.log("collision")
-			collision = true;
-			break;}
-		if (x >= gridwidth) {
-			console.log("collision")
-			collision = true;
+function moveright(activeBlock) {
+	state="movable";
+	shiftedCoordinates = activeBlock.coordinates.map(function(coordinate){
+		return [
+		    coordinate[0]+1,
+		    coordinate[1]
+		];
+	});
+	for (var i=0; i<shiftedCoordinates.length; i++) {
+		if(shiftedCoordinates[i][0]>= gridwidth){
+			state="collision";
+			break;
 		}
-	} if (collision == false){
-		for (var i=0; i<block.coordinates.length; i++) {
-			block.coordinates[i][0] += 1;
+	} 
+	if (state == "movable"){
+		if (willFit(shiftedCoordinates)){
+			for (var i=0; i<activeBlock.coordinates.length; i++) {
+				activeBlock.coordinates[i][0] += 1;
 			}
+		}
 	}
 	gameboard();
-return block 
-	
+	return activeBlock 	
 }
  
 
@@ -188,13 +192,13 @@ function key(e) {
 	if (!e) e=window.event
     switch (e.keyCode) {
         case 40: // down
-        blockmove(block);
+        blockmove(activeBlock);
 	    break;
 	case 39: //right
-	    moveright(block);
+	    moveright(activeBlock);
 	    break;
 	case 37: //left
-	    moveleft(block);
+	    moveleft(activeBlock);
 	    break;
 
     }
@@ -204,26 +208,32 @@ function key(e) {
 
 requestAnimationFrame(gameloop);
 function gameloop () {
-	if (block.active == false){ // for creating new block
-		blocks.push(block);
-		block = createBlock();
+	if (activeBlock.active == false){
+		// for creating new block
+		for (var i=0; i<activeBlock.coordinates.length; i++){
+		blocks.coordinates.push(activeBlock.coordinates[i]);// push coordinates over and color of coord
+		blocks.colour.push([activeBlock.colour]);
+		}
+		activeBlock = createBlock();
 	} 
-	addblock(block);
+	addblock(activeBlock);
 	requestAnimationFrame(gameloop); 
 }
 
 function willFit(){
-	movable = true;
-	for (var j=0; j<blocks.length; j++){
-		for (var k=0; k<blocks[j].coordinates.length; k++){
-			x1=blocks[j].coordinates[k][0];
-			y1=blocks[j].coordinates[k][1];
-			if (x==x1 && y==y1){
-				movable = false;
-				return movable;
-				break;
+	// return true if in grid
+	if (blocks.coordinates.length>0) {
+	for(var r=0; r<shiftedCoordinates.length; r++){
+			for (var k=0; k<blocks.coordinates.length; k++){
+					x=blocks.coordinates[k][0];
+					y=blocks.coordinates[k][1];
+					if (shiftedCoordinates[r][0] == x && shiftedCoordinates[r][1] == y){
+						console.log("collision");
+						return false;
+						break;
+					}
 			}
 		}
-	}
+	} if (!false){return true;}
 }
 
