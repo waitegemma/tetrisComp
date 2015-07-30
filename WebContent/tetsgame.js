@@ -88,26 +88,17 @@ var blocks = {coordinates:[], colour:[]};
 var time =setInterval(function (){ blockmove(activeBlock)}, 2000);
 function blockmove () {
 	state = "movable";
-	shiftedCoordinates = activeBlock.coordinates.map(function(coordinate){
+	var shiftedCoordinates = activeBlock.coordinates.map(function(coordinate){
 		return [
 		    coordinate[0],
 		    coordinate[1]+1
 		];
 	});
-	for(var i=0; i<shiftedCoordinates.length; i++){
-		if (shiftedCoordinates[i][1]>=gridheight){
-			state = "collision";
-			activeBlock.active = false;
-			break;
+	if (willFit(shiftedCoordinates)){
+		for (var i=0; i<activeBlock.coordinates.length; i++) {
+			activeBlock.coordinates[i][1] += 1;
 		}
-	}
-	if (state == "movable"){
-		if (willFit(shiftedCoordinates)){
-			for (var i=0; i<activeBlock.coordinates.length; i++) {
-				activeBlock.coordinates[i][1] += 1;
-			}
-		} else {activeBlock.active = false;}
-	}
+	} else {activeBlock.active = false;}
 	gameboard();
 return activeBlock 
 }
@@ -137,24 +128,15 @@ function addblock(activeBlock) {
 /* keyboard functions */
 function moveleft(activeBlock) {
 	state = "movable";
-	shiftedCoordinates = activeBlock.coordinates.map(function(coordinate){
+	var shiftedCoordinates = activeBlock.coordinates.map(function(coordinate){
 		return [
 		    coordinate[0]-1,
 		    coordinate[1]
 		];
 	});
-	for(var i=0; i<shiftedCoordinates.length; i++){
-		if (shiftedCoordinates[i][0]<=-1){
-			state = "collision";
-			break;
-		}
-	}
-	if (state == "movable"){
-		if (willFit(shiftedCoordinates)){
-			for (var i=0; i<activeBlock.coordinates.length; i++) {
-				activeBlock.coordinates[i][0] -= 1;
-			}
-
+	if (willFit(shiftedCoordinates)){
+		for (var i=0; i<activeBlock.coordinates.length; i++) {
+			activeBlock.coordinates[i][0] -= 1;
 		}
 	}
 	gameboard();
@@ -162,24 +144,15 @@ function moveleft(activeBlock) {
 } 
 
 function moveright(activeBlock) {
-	state="movable";
-	shiftedCoordinates = activeBlock.coordinates.map(function(coordinate){
+	var shiftedCoordinates = activeBlock.coordinates.map(function(coordinate){
 		return [
 		    coordinate[0]+1,
 		    coordinate[1]
 		];
 	});
-	for (var i=0; i<shiftedCoordinates.length; i++) {
-		if(shiftedCoordinates[i][0]>= gridwidth){
-			state="collision";
-			break;
-		}
-	} 
-	if (state == "movable"){
-		if (willFit(shiftedCoordinates)){
-			for (var i=0; i<activeBlock.coordinates.length; i++) {
-				activeBlock.coordinates[i][0] += 1;
-			}
+	if (willFit(shiftedCoordinates)){
+		for (var i=0; i<activeBlock.coordinates.length; i++) {
+			activeBlock.coordinates[i][0] += 1;
 		}
 	}
 	gameboard();
@@ -220,20 +193,28 @@ function gameloop () {
 	requestAnimationFrame(gameloop); 
 }
 
-function willFit(){
+function willFit(shiftedCoordinates){
 	// return true if in grid
-	if (blocks.coordinates.length>0) {
+	
 	for(var r=0; r<shiftedCoordinates.length; r++){
+		if (shiftedCoordinates[r][0]<=-1){
+			return false;
+		}
+		if(shiftedCoordinates[r][0]>= gridwidth){
+			return false;
+		}
+		if (shiftedCoordinates[r][1]>=gridheight){
+			return false;
+		} else if (blocks.coordinates.length>0) {
 			for (var k=0; k<blocks.coordinates.length; k++){
 					x=blocks.coordinates[k][0];
 					y=blocks.coordinates[k][1];
 					if (shiftedCoordinates[r][0] == x && shiftedCoordinates[r][1] == y){
 						console.log("collision");
 						return false;
-						break;
 					}
+					
 			}
 		}
-	} if (!false){return true;}
+	} return true;
 }
-
