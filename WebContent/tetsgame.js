@@ -1,16 +1,52 @@
 /**
  * 
  */
-var gridheight = 22; // normal grid size plus 2 hidden rows at the top.
-var gridwidth = 10;
 
+var NewGrid = function(width,height) {
+	this.width = width;
+	this.height = height;
+	this.rows = [];
+	//ToDo: initialise the rows, each row would be an array that stores colours
+	
+	this.addCoordinate = function(coordinates,colour) {
+		//ToDo: put colours at the coordinates in the grid
+		
+	}
+	
+	this.willFit = function(shiftedCoordinates) {
+		for(var r=0; r<shiftedCoordinates.length; r++){
+			if (shiftedCoordinates[r][0]<=-1){
+				return false;
+			}
+			if(shiftedCoordinates[r][0]>= Grid.width){
+				return false;
+			}
+			if (shiftedCoordinates[r][1]>= Grid.height){
+				return false;
+			} else if (blocks.coordinates.length>0) {
+				for (var k=0; k<blocks.coordinates.length; k++){
+						x=blocks.coordinates[k][0];
+						y=blocks.coordinates[k][1];
+						if (shiftedCoordinates[r][0] == x && shiftedCoordinates[r][1] == y){
+							console.log("collision");
+							return false;
+						}
+						
+				}
+			}
+		} return true; 
+	}
+}
+var Grid = new NewGrid;
+Grid.height = 22;
+Grid.width = 10;
 
 /* create grid of 0's */			
 function creategrid() {
 	var grid =[];
-	for (var i = 0;  i< gridheight; i++) {
+	for (var i = 0;  i< Grid.height; i++) {
 		grid.push([]);
-		for (var j=0; j< gridwidth; j++) {
+		for (var j = 0; j< Grid.width; j++) {
 			grid[i].push(0);
 		}
 	}
@@ -24,8 +60,8 @@ var canvas = document.getElementById('tetrisgame');
 var context = canvas.getContext("2d");
 
 function gameboard() {		// can't seem to figure out how to save game board once reaching the bottom.
-for (var row=0;  row< gridheight-2; row++) {
-	for (var col=0; col< gridwidth; col++) { // copy gameboard() at point of collision.
+for (var row=0;  row< Grid.height-2; row++) {
+	for (var col=0; col< Grid.width; col++) { // copy gameboard() at point of collision.
 		if (grid[row+2][col] == 0 ){
 			context.beginPath();
 			context.fillStyle = "grey"; 
@@ -38,7 +74,6 @@ for (var row=0;  row< gridheight-2; row++) {
 
 gameboard();
 
-var collision = false;
 var Block = function(coordinates, colour) {
 	this.coordinates = coordinates;
 	this.colour = colour;
@@ -77,24 +112,20 @@ function createBlock(){
 		} else if (num == 7) { activeBlock = new Block([[4,0],[4,1],[5,0],[5,1]],"yellow")
 	} return activeBlock; 
 };
-//for (var i=0; i<10; i++) {
-	//console.log("Random block", createBlock().colour, createBlock().coordinates);
-//} 
-//var blocks = [];
+
 var blocks = {coordinates:[], colour:[]};
 
 /* time step */
 	
 var time =setInterval(function (){ blockmove(activeBlock)}, 2000);
-function blockmove () {
-	state = "movable";
+function blockmove() {
 	var shiftedCoordinates = activeBlock.coordinates.map(function(coordinate){
 		return [
 		    coordinate[0],
 		    coordinate[1]+1
 		];
 	});
-	if (willFit(shiftedCoordinates)){
+	if (Grid.willFit(shiftedCoordinates)){
 		for (var i=0; i<activeBlock.coordinates.length; i++) {
 			activeBlock.coordinates[i][1] += 1;
 		}
@@ -127,14 +158,13 @@ function addblock(activeBlock) {
 
 /* keyboard functions */
 function moveleft(activeBlock) {
-	state = "movable";
 	var shiftedCoordinates = activeBlock.coordinates.map(function(coordinate){
 		return [
 		    coordinate[0]-1,
 		    coordinate[1]
 		];
 	});
-	if (willFit(shiftedCoordinates)){
+	if (Grid.willFit(shiftedCoordinates)){
 		for (var i=0; i<activeBlock.coordinates.length; i++) {
 			activeBlock.coordinates[i][0] -= 1;
 		}
@@ -150,7 +180,7 @@ function moveright(activeBlock) {
 		    coordinate[1]
 		];
 	});
-	if (willFit(shiftedCoordinates)){
+	if (Grid.willFit(shiftedCoordinates)){
 		for (var i=0; i<activeBlock.coordinates.length; i++) {
 			activeBlock.coordinates[i][0] += 1;
 		}
@@ -184,7 +214,7 @@ function gameloop () {
 	if (activeBlock.active == false){
 		// for creating new block
 		for (var i=0; i<activeBlock.coordinates.length; i++){
-		blocks.coordinates.push(activeBlock.coordinates[i]);// push coordinates over and color of coord
+		blocks.coordinates.push(activeBlock.coordinates[i]);// push coordinates over and colour of coordinates
 		blocks.colour.push([activeBlock.colour]);
 		}
 		activeBlock = createBlock();
@@ -200,10 +230,10 @@ function willFit(shiftedCoordinates){
 		if (shiftedCoordinates[r][0]<=-1){
 			return false;
 		}
-		if(shiftedCoordinates[r][0]>= gridwidth){
+		if(shiftedCoordinates[r][0]>= Grid.width){
 			return false;
 		}
-		if (shiftedCoordinates[r][1]>=gridheight){
+		if (shiftedCoordinates[r][1]>= Grid.height){
 			return false;
 		} else if (blocks.coordinates.length>0) {
 			for (var k=0; k<blocks.coordinates.length; k++){
