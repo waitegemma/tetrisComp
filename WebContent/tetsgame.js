@@ -1,123 +1,188 @@
-var gridheight = 10;
-var gridwidth = 6;
+/**
+ * 
+ */
 
-/* create grid of 0's */			
-function creategrid() {
-	var grid =[];
-	for (i = 0;  i< gridheight; i++) {
-		grid.push([]);
-		for (j=0; j< gridwidth; j++) {
-			grid[i].push(0);
+var NewGrid = function(height, width) {
+	this.height = height;
+	this.width = width;
+	this.rows = [];
+	for (var i = 0;  i< this.height; i++) {
+		var row = [];
+		for (var j = 0; j< this.width; j++) {
+			row.push(0);
 		}
+		this.rows.push(row);
 	}
-	return grid
-}
-var grid = creategrid();
-
-
-
-
-/* creating game board */
-var canvas =document.getElementById('tetrisgame');
-var context = canvas.getContext("2d");
-var bblock = new Image();
-bblock.src = 'bblock.gif';
-
-var colblock = new Image();
-colblock.src = 'darkblue.gif';
- 
-
-function gameboard() {
-for (i= 0;  i< gridheight; i++) {
-	for (j=0; j< gridwidth; j++) {
-		if (grid[i][j] == 0 ){ 
-			context.drawImage(bblock, j*20, i*20);
-		} else {
-			context.drawImage(colblock, j*20, i*20);
-		}
-	}
-			
-	}
-}
-
-/* time step */
- gameboard();
 	
-var time =setInterval(function (){ blockmove(block)}, 5000);
-function blockmove () {
-	for (i=0; i<block.length; i++) {
-	block[i][1] += 1;
+	this.addCoordinate = function(coordinates,colour) {
+		coordinates.forEach(function(coordinate) {
+            this.rows[coordinate[1]][coordinate[0]] = colour;
+        }, this);
+    }
+	
+	this.willFit = function(shiftedCoordinates) {
+		for(var r=0; r<shiftedCoordinates.length; r++){
+			if (shiftedCoordinates[r][0]<=-1){
+				return false;
+			}
+			if(shiftedCoordinates[r][0]>= this.width){
+				return false;
+			}
+			if (shiftedCoordinates[r][1]>= this.height){
+				return false;
+			} else {			// check grid for none 0 elements
+				x=shiftedCoordinates[r][0];
+				y=shiftedCoordinates[r][1];
+					if (this.rows[y][x] != 0){
+						console.log("collision");
+						return false;
+					}
+			} 
+		} return true; 
 	}
-	gameboard();
-return block 
+};
+
+var grid = new NewGrid(22,10);
+
+ /* function draw(grid) {
+	var gridString = grid.rows.map(function(row) {
+       return row.join(" "); 
+    }).join("<br/>");
+    $("div").html(gridString);
 }
 
-var testblock =[[0,0],[1,0]];
-var block1 = [[0,0],[0,1,],[0,2],[0,3]]; 
-var block2 =[[0,0],[1,0],[1,1],[1,2]];
-var block3 = [[1,0],[1,1],[1,2],[0,2]];
-var block4 = [[1,0],[0,1],[1,1],[0,2]];
-var block5 = [[0,1],[1,0],[1,1],[1,2]];
-var block6 = [[0,0],[1,0],[1,1],[1,2]];
-var block7 =[[0,0],[0,1],[1,0],[1,1]]; 
+draw(grid); */
 
-/* block coordinates equal creategrid coordations make 0 be 1 */
-var num = Math.floor(Math.random()*8);
-if  (num ==0) { 
-	var block = testblock; 
-	var z =1;
-} else if (num == 1) {
-	var block = block1;
-	var z = 2;
-} else if (num == 2) {
-	var block = block2;
-	var z = 3;
-} else if (num == 3) {
-	var block = block3;
-	var z = 4;
-} else if (num == 4) {
-	var block = block4;
-	var z = 5;
-} else if (num == 5) {
-	var block = block5;
-	var z = 6;
-} else if (num == 6) {
-	var block = block6;
-	var z = 7;
-} else if (num == 7) {
-	var block = block7;
-	var z = 8;
+// creating game board
+var canvas = document.getElementById('tetrisgame');
+var context = canvas.getContext("2d");
+
+function gameboard() {		// can't seem to figure out how to save game board once reaching the bottom.
+for (var x=0;  x< grid.height-2; x++) {
+	for (var col=0; col< grid.width; col++) { // copy gameboard() at point of collision.
+		if (grid.rows[x+2][col] == 0 ){
+			context.beginPath();
+			context.fillStyle = "grey"; 
+			context.rect(col*20, x*20, 20, 20);  
+			context.fill();
+		} else {
+			context.beginPath();					// draws block onto grid
+			context.fillStyle = grid.rows[x+2][col]; 
+			context.rect(col*20, x*20, 20, 20);  
+			context.fill(); 
+	} 			
+}
+}
+}
+
+gameboard(); 
+
+var Block = function(coordinates, colour) {
+	this.coordinates = coordinates;
+	this.colour = colour;
+	this.active = true; 			// for creating new block.
+	this.height = function(){
+		var maxY;
+		var minY;
+		this.coordinates.forEach(function(coordinate) {
+			if(maxY == undefined || coordinate[1]>maxY) {
+				maxY = coordinate[1];
+			}
+			if(minY == undefined || coordinate[1] <minY) {
+				minY = coordinate[1];
+			}
+		});
+		return 1 + maxY - minY;
+	};
 	
 };
 
+var activeBlock = new Block([[0,0],[0,1],[1,0],[1,1]], "yellow");
 
-function addblock(block,z) {
-	for (i=0; i<block.length; i++){
-	 x=block[i][0];
-	 y=block[i][1];
-	 grid[y][x] = z ;
-	 }
+// draw(grid);
+// gameboard();
+
+function createBlock(){
+	var num = Math.floor(Math.random()*8);
+	var block;
+	if  (num == 0) { activeBlock = new Block([[4,0],[5,0],[5,1]],"pink")
+		} else if (num == 1) { activeBlock = new Block([[5,0],[5,1],[5,2],[5,3]],"cyan")
+		} else if (num == 2) { activeBlock = new Block([[4,0],[5,0],[5,1],[5,2]],"blue")
+		} else if (num == 3) { activeBlock = new Block([[5,0],[5,1],[5,2],[4,2]],"orange")
+		} else if (num == 4) { activeBlock = new Block([[5,0],[4,1],[5,1],[4,2]],"red")
+		} else if (num == 5) { activeBlock = new Block([[4,1],[5,0],[5,1],[5,2]],"purple")
+		} else if (num == 6) { activeBlock = new Block([[4,0],[5,0],[5,1],[6,1]],"green")
+		} else if (num == 7) { activeBlock = new Block([[4,0],[4,1],[5,0],[5,1]],"yellow")
+	} return activeBlock; 
+};
+
+/* time step */
+	
+var time =setInterval(function (){ blockmove(activeBlock)}, 2000);
+function blockmove() {
+	var shiftedCoordinates = activeBlock.coordinates.map(function(coordinate){
+		return [
+		    coordinate[0],
+		    coordinate[1]+1
+		];
+	});
+	if (grid.willFit(shiftedCoordinates)){
+		for (var i=0; i<activeBlock.coordinates.length; i++) {
+			activeBlock.coordinates[i][1] += 1;
+		}
+	} else {activeBlock.active = false;
+	console.log(activeBlock.coordinates)
+	}
+	gameboard();
+return activeBlock 
 }
+
+
+function addblock(activeBlock) {
+	for (var i=0; i<activeBlock.coordinates.length; i++){
+		x=activeBlock.coordinates[i][0];
+		y=activeBlock.coordinates[i][1];
+		context.beginPath();					// draws block onto grid
+		context.fillStyle = activeBlock.colour; 
+		context.rect(x*20, (y-2)*20, 20, 20);  
+		context.fill(); 
+		}
+}
+
 
 
 
 /* keyboard functions */
-function moveleft(block) {
-	for (i=0; i<block.length; i++) {
-	block[i][0] -= 1;
+function moveleft(activeBlock) {
+	var shiftedCoordinates = activeBlock.coordinates.map(function(coordinate){
+		return [
+		    coordinate[0]-1,
+		    coordinate[1]
+		];
+	});
+	if (grid.willFit(shiftedCoordinates)){
+		for (var i=0; i<activeBlock.coordinates.length; i++) {
+			activeBlock.coordinates[i][0] -= 1;
+		}
 	}
 	gameboard();
-return block 
-	
+	return activeBlock	
 } 
 
-function moveright(block) {
-	for (i=0; i<block.length; i++) {
-	block[i][0] += 1;
+function moveright(activeBlock) {
+	var shiftedCoordinates = activeBlock.coordinates.map(function(coordinate){
+		return [
+		    coordinate[0]+1,
+		    coordinate[1]
+		];
+	});
+	if (grid.willFit(shiftedCoordinates)){
+		for (var i=0; i<activeBlock.coordinates.length; i++) {
+			activeBlock.coordinates[i][0] += 1;
+		}
 	}
 	gameboard();
-return block 
-	
+	return activeBlock 	
 }
  
 
@@ -126,13 +191,13 @@ function key(e) {
 	if (!e) e=window.event
     switch (e.keyCode) {
         case 40: // down
-        blockmove(block);
+        blockmove(activeBlock);
 	    break;
 	case 39: //right
-	    moveright(block);
+	    moveright(activeBlock);
 	    break;
 	case 37: //left
-	    moveleft(block);
+	    moveleft(activeBlock);
 	    break;
 
     }
@@ -142,7 +207,14 @@ function key(e) {
 
 requestAnimationFrame(gameloop);
 function gameloop () {
-	grid=creategrid();
-	addblock(block,z);
-	requestAnimationFrame(gameloop);
+	if (activeBlock.active == false){
+		// console.log(activeBlock.coordinates,activeBlock.colour);
+		grid.addCoordinate(activeBlock.coordinates, activeBlock.colour);
+		// draw(grid);
+		activeBlock = createBlock();
+		gameboard();
+	} 
+	addblock(activeBlock);
+	requestAnimationFrame(gameloop); 
 }
+
