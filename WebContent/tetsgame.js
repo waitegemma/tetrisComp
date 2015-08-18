@@ -2,77 +2,80 @@
  * 
  */
 
-var NewGrid = function(width,height) {
-	this.width = width;
+var NewGrid = function(height, width) {
 	this.height = height;
+	this.width = width;
 	this.rows = [];
-	//ToDo: initialise the rows, each row would be an array that stores colours
+	for (var i = 0;  i< this.height; i++) {
+		var row = [];
+		for (var j = 0; j< this.width; j++) {
+			row.push(0);
+		}
+		this.rows.push(row);
+	}
 	
 	this.addCoordinate = function(coordinates,colour) {
-		//ToDo: put colours at the coordinates in the grid
-		
-	}
+		coordinates.forEach(function(coordinate) {
+            this.rows[coordinate[1]][coordinate[0]] = colour;
+        }, this);
+    }
 	
 	this.willFit = function(shiftedCoordinates) {
 		for(var r=0; r<shiftedCoordinates.length; r++){
 			if (shiftedCoordinates[r][0]<=-1){
 				return false;
 			}
-			if(shiftedCoordinates[r][0]>= Grid.width){
+			if(shiftedCoordinates[r][0]>= this.width){
 				return false;
 			}
-			if (shiftedCoordinates[r][1]>= Grid.height){
+			if (shiftedCoordinates[r][1]>= this.height){
 				return false;
-			} else if (blocks.coordinates.length>0) {
-				for (var k=0; k<blocks.coordinates.length; k++){
-						x=blocks.coordinates[k][0];
-						y=blocks.coordinates[k][1];
-						if (shiftedCoordinates[r][0] == x && shiftedCoordinates[r][1] == y){
-							console.log("collision");
-							return false;
-						}
-						
-				}
-			}
+			} else {			// check grid for none 0 elements
+				x=shiftedCoordinates[r][0];
+				y=shiftedCoordinates[r][1];
+					if (this.rows[y][x] != 0){
+						console.log("collision");
+						return false;
+					}
+			} 
 		} return true; 
 	}
-}
-var Grid = new NewGrid;
-Grid.height = 22;
-Grid.width = 10;
+};
 
-/* create grid of 0's */			
-function creategrid() {
-	var grid =[];
-	for (var i = 0;  i< Grid.height; i++) {
-		grid.push([]);
-		for (var j = 0; j< Grid.width; j++) {
-			grid[i].push(0);
-		}
-	}
-	return grid
+var grid = new NewGrid(22,10);
+
+ /* function draw(grid) {
+	var gridString = grid.rows.map(function(row) {
+       return row.join(" "); 
+    }).join("<br/>");
+    $("div").html(gridString);
 }
 
-var grid = creategrid();
+draw(grid); */
 
-/* creating game board */
+// creating game board
 var canvas = document.getElementById('tetrisgame');
 var context = canvas.getContext("2d");
 
 function gameboard() {		// can't seem to figure out how to save game board once reaching the bottom.
-for (var row=0;  row< Grid.height-2; row++) {
-	for (var col=0; col< Grid.width; col++) { // copy gameboard() at point of collision.
-		if (grid[row+2][col] == 0 ){
+for (var x=0;  x< grid.height-2; x++) {
+	for (var col=0; col< grid.width; col++) { // copy gameboard() at point of collision.
+		if (grid.rows[x+2][col] == 0 ){
 			context.beginPath();
 			context.fillStyle = "grey"; 
-			context.rect(col*20, row*20, 20, 20);  
+			context.rect(col*20, x*20, 20, 20);  
 			context.fill();
-		} 
-	}			
+		} else {
+			context.beginPath();					// draws block onto grid
+			context.fillStyle = grid.rows[x+2][col]; 
+			context.rect(col*20, x*20, 20, 20);  
+			context.fill(); 
+	} 			
+}
 }
 }
 
-gameboard();
+gameboard(); 
 
 var Block = function(coordinates, colour) {
 	this.coordinates = coordinates;
@@ -92,12 +95,12 @@ var Block = function(coordinates, colour) {
 		return 1 + maxY - minY;
 	};
 	
-}
+};
 
 var activeBlock = new Block([[0,0],[0,1],[1,0],[1,1]], "yellow");
-// console.log("Block", activeBlock);
-// console.log("height", activeBlock.height())
 
+// draw(grid);
+// gameboard();
 
 function createBlock(){
 	var num = Math.floor(Math.random()*8);
@@ -113,8 +116,6 @@ function createBlock(){
 	} return activeBlock; 
 };
 
-var blocks = {coordinates:[], colour:[]};
-
 /* time step */
 	
 var time =setInterval(function (){ blockmove(activeBlock)}, 2000);
@@ -125,11 +126,13 @@ function blockmove() {
 		    coordinate[1]+1
 		];
 	});
-	if (Grid.willFit(shiftedCoordinates)){
+	if (grid.willFit(shiftedCoordinates)){
 		for (var i=0; i<activeBlock.coordinates.length; i++) {
 			activeBlock.coordinates[i][1] += 1;
 		}
-	} else {activeBlock.active = false;}
+	} else {activeBlock.active = false;
+	console.log(activeBlock.coordinates)
+	}
 	gameboard();
 return activeBlock 
 }
@@ -143,13 +146,6 @@ function addblock(activeBlock) {
 		context.fillStyle = activeBlock.colour; 
 		context.rect(x*20, (y-2)*20, 20, 20);  
 		context.fill(); 
-	}for (var k=0; k<blocks.coordinates.length; k++){
-			x=blocks.coordinates[k][0];
-			y=blocks.coordinates[k][1];
-			context.beginPath();					// draws block onto grid
-			context.fillStyle = blocks.colour[k]; 
-			context.rect(x*20, (y-2)*20, 20, 20);  
-			context.fill(); 
 		}
 }
 
@@ -164,7 +160,7 @@ function moveleft(activeBlock) {
 		    coordinate[1]
 		];
 	});
-	if (Grid.willFit(shiftedCoordinates)){
+	if (grid.willFit(shiftedCoordinates)){
 		for (var i=0; i<activeBlock.coordinates.length; i++) {
 			activeBlock.coordinates[i][0] -= 1;
 		}
@@ -180,7 +176,7 @@ function moveright(activeBlock) {
 		    coordinate[1]
 		];
 	});
-	if (Grid.willFit(shiftedCoordinates)){
+	if (grid.willFit(shiftedCoordinates)){
 		for (var i=0; i<activeBlock.coordinates.length; i++) {
 			activeBlock.coordinates[i][0] += 1;
 		}
@@ -212,39 +208,13 @@ function key(e) {
 requestAnimationFrame(gameloop);
 function gameloop () {
 	if (activeBlock.active == false){
-		// for creating new block
-		for (var i=0; i<activeBlock.coordinates.length; i++){
-		blocks.coordinates.push(activeBlock.coordinates[i]);// push coordinates over and colour of coordinates
-		blocks.colour.push([activeBlock.colour]);
-		}
+		// console.log(activeBlock.coordinates,activeBlock.colour);
+		grid.addCoordinate(activeBlock.coordinates, activeBlock.colour);
+		// draw(grid);
 		activeBlock = createBlock();
+		gameboard();
 	} 
 	addblock(activeBlock);
 	requestAnimationFrame(gameloop); 
 }
 
-function willFit(shiftedCoordinates){
-	// return true if in grid
-	
-	for(var r=0; r<shiftedCoordinates.length; r++){
-		if (shiftedCoordinates[r][0]<=-1){
-			return false;
-		}
-		if(shiftedCoordinates[r][0]>= Grid.width){
-			return false;
-		}
-		if (shiftedCoordinates[r][1]>= Grid.height){
-			return false;
-		} else if (blocks.coordinates.length>0) {
-			for (var k=0; k<blocks.coordinates.length; k++){
-					x=blocks.coordinates[k][0];
-					y=blocks.coordinates[k][1];
-					if (shiftedCoordinates[r][0] == x && shiftedCoordinates[r][1] == y){
-						console.log("collision");
-						return false;
-					}
-					
-			}
-		}
-	} return true;
-}
